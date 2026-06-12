@@ -15,10 +15,11 @@
         }
         h1 { text-align: center; color: #2c3e50; }
         .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        button, select { padding: 12px 24px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
+        button, select { padding: 12px 24px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
         select { background-color: white; border: 2px solid #3498db; color: #2c3e50; outline: none; }
         #start-btn { background-color: #3498db; color: white; }
         #stop-btn { background-color: #e74c3c; color: white; }
+        #retrans-btn { background-color: #f39c12; color: white; } /* 再翻訳ボタンの色 */
         #clear-btn { background-color: #95a5a6; color: white; }
         button:disabled, select:disabled { background-color: #bdc3c7; cursor: not-allowed; border-color: #bdc3c7; }
         #status { text-align: center; font-style: italic; color: #7f8c8d; margin-bottom: 20px; }
@@ -89,6 +90,7 @@
 
         <button id="start-btn">録音開始</button>
         <button id="stop-btn" disabled>一時停止</button>
+        <button id="retrans-btn">🔄 全文再翻訳</button>
         <button id="clear-btn">クリア</button>
     </div>
 
@@ -120,6 +122,7 @@
 
             const startBtn = document.getElementById('start-btn');
             const stopBtn = document.getElementById('stop-btn');
+            const retransBtn = document.getElementById('retrans-btn');
             const clearBtn = document.getElementById('clear-btn');
             const statusDiv = document.getElementById('status');
             const finalSpan = document.getElementById('final-span');
@@ -150,6 +153,19 @@
             });
             
             stopBtn.addEventListener('click', () => { recognition.stop(); });
+            
+            // 💡 【新機能】「全文再翻訳」ボタンを押したときの処理
+            retransBtn.addEventListener('click', () => {
+                const currentText = finalSpan.textContent;
+                if (!currentText.trim()) {
+                    alert("文字起こしエリアに文章がありません。");
+                    return;
+                }
+                // 翻訳エリアを一旦リセットして、丸ごと再翻訳にかける
+                translateDiv.textContent = "⏳ 再翻訳中...\n";
+                translateText(currentText, true); // trueを渡して「一括上書き」モードにする
+            });
+
             clearBtn.addEventListener('click', () => {
                 if(confirm("内容をクリアしますか？")) {
                     finalTranscript = '';
@@ -185,7 +201,7 @@
                     if (event.results[i].isFinal) {
                         const textChunk = event.results[i][0].transcript;
                         finalTranscript += textChunk + '\n';
-                        translateText(textChunk);
+                        translateText(textChunk, false); // 通常は今まで通り「追記」
                     } else {
                         interimTranscript += event.results[i][0].transcript;
                     }
@@ -195,8 +211,8 @@
                 interimSpan.textContent = interimTranscript;
             };
 
-            // 💡 確実にCORS制限をすり抜け、かつデータをしっかり受け取るためのJSONP風方式に変更
-            async function translateText(text) {
+            // 💡 翻訳関数（isOverwrite引数を追加して、ボタンからの再翻訳に対応）
+            async function translateText(text, isOverwrite = false) {
                 if (!GAS_URL) {
                     translateDiv.textContent = "※GASのURLが設定されていません。";
                     return;
@@ -207,23 +223,30 @@
                 const targetLang = targetSelect.value;
                 
                 if (sourceLang === targetLang) {
-                    translateDiv.textContent += text + '\n';
+                    if (isOverwrite) {
+                        translateDiv.textContent = text + '\n';
+                    } else {
+                        translateDiv.textContent += text + '\n';
+                    }
                     return;
                 }
 
                 try {
-                    // 古い一時的なコールバック関数を掃除
                     const oldScript = document.getElementById('gas-jsonp');
                     if (oldScript) oldScript.remove();
 
-                    // GASから翻訳結果が戻ってきたときに実行されるグローバル関数をその場で用意
                     const callbackName = 'callback_' + Math.random().toString(36).substring(3, 9);
                     window[callbackName] = function(data) {
-                        translateDiv.textContent += data.translated + '\n';
-                        delete window[callbackName]; // 使い終わったら削除
+                        if (isOverwrite) {
+                            // ボタンを押したときは、右側を最新の翻訳文で丸ごと置き換える
+                            translateDiv.textContent = data.translated + '\n';
+                        } else {
+                            // リアルタイム音声認識のときは、今まで通り下に追記する
+                            translateDiv.textContent += data.translated + '\n';
+                        }
+                        delete window[callbackName];
                     };
 
-                    // <script>タグを作って強制的にGASへアクセス（これでCORSエラーを100%回避）
                     const script = document.createElement('script');
                     script.id = 'gas-jsonp';
                     script.src = `${GAS_URL}?text=${encodeURIComponent(text)}&source=${sourceLang}&target=${targetLang}&callback=${callbackName}`;
