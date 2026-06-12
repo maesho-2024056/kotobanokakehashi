@@ -1,232 +1,246 @@
-        <!DOCTYPE html>
-        <html lang="ja">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>コトバノカケハシ</title>
-            <style>
-                body {
-                    font-family: 'Helvetica Neue', Arial, sans-serif;
-                    max-width: 1000px;
-                    margin: 40px auto;
-                    padding: 0 20px;
-                    background-color: #f5f7fb;
-                    color: #333;
-                }
-                h1 { text-align: center; color: #2c3e50; }
-                .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-                button, select { padding: 12px 24px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
-                select { background-color: white; border: 2px solid #3498db; color: #2c3e50; outline: none; }
-                #start-btn { background-color: #3498db; color: white; }
-                #stop-btn { background-color: #e74c3c; color: white; }
-                #clear-btn { background-color: #95a5a6; color: white; }
-                button:disabled, select:disabled { background-color: #bdc3c7; cursor: not-allowed; border-color: #bdc3c7; }
-                #status { text-align: center; font-style: italic; color: #7f8c8d; margin-bottom: 20px; }
-                
-                .container { display: flex; gap: 20px; }
-                .box {
-                    flex: 1;
-                    background: white;
-                    border-radius: 12px;
-                    padding: 20px;
-                    min-height: 300px;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                    border: 1px solid #e2e8f0;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: flex-start;
-                    align-items: stretch;
-                }
-                .box-title {
-                    font-weight: bold;
-                    color: #7f8c8d;
-                    margin-bottom: 15px;
-                    border-bottom: 2px solid #eee;
-                    padding-bottom: 5px;
-                    font-size: 16px;
-                }
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コトバノカケハシ</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f5f7fb;
+            color: #333;
+        }
+        h1 { text-align: center; color: #2c3e50; }
+        .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        button, select { padding: 12px 24px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
+        select { background-color: white; border: 2px solid #3498db; color: #2c3e50; outline: none; }
+        #start-btn { background-color: #3498db; color: white; }
+        #stop-btn { background-color: #e74c3c; color: white; }
+        #clear-btn { background-color: #95a5a6; color: white; }
+        button:disabled, select:disabled { background-color: #bdc3c7; cursor: not-allowed; border-color: #bdc3c7; }
+        #status { text-align: center; font-style: italic; color: #7f8c8d; margin-bottom: 20px; }
+        
+        .container { display: flex; gap: 20px; }
+        .box {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+        .box-title {
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            font-size: 16px;
+        }
 
-                .output-area {
-                    flex: 1;
-                    font-size: 18px;
-                    line-height: 1.6;
-                    white-space: pre-wrap;
-                    word-wrap: break-word;
-                    text-align: left !important;
-                    display: block;
-                    margin: 0;
-                    padding: 0;
-                }
-                
-                #final-span, #interim-span { display: inline; }
-                .interim { color: #95a5a6; }
-            </style>
-        </head>
-        <body>
+        .output-area {
+            flex: 1;
+            font-size: 18px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            text-align: left !important;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #final-span, #interim-span { display: inline; }
+        .interim { color: #95a5a6; }
+    </style>
+</head>
+<body>
 
-            <h1>🎙️ コトバノカケハシ</h1>
+    <h1>🎙️ コトバノカケハシ</h1>
+    
+    <div class="controls">
+        <label for="source-select" style="font-weight: bold; color: #2c3e50;">話す言語：</label>
+        <select id="source-select">
+            <option value="ja-JP" data-api="ja">日本語 (Japanese)</option>
+            <option value="en-US" data-api="en">英語 (English)</option>
+            <option value="zh-CN" data-api="zh">中国語 (Chinese)</option>
+            <option value="ko-KR" data-api="ko">韓国語 (Korean)</option>
+            <option value="es-ES" data-api="es">スペイン語 (Spanish)</option>
+            <option value="fr-FR" data-api="fr">フランス語 (French)</option>
+        </select>
+
+        <label for="target-select" style="font-weight: bold; color: #2c3e50;">翻訳先：</label>
+        <select id="target-select">
+            <option value="en" selected>英語 (English)</option>
+            <option value="ja">日本語 (Japanese)</option>
+            <option value="zh">中国語 (Chinese)</option>
+            <option value="ko">韓国語 (Korean)</option>
+            <option value="es">スペイン語 (Spanish)</option>
+            <option value="fr">フランス語 (French)</option>
+        </select>
+
+        <button id="start-btn">録音開始</button>
+        <button id="stop-btn" disabled>一時停止</button>
+        <button id="clear-btn">クリア</button>
+    </div>
+
+    <div id="status">停止中</div>
+
+    <div class="container">
+        <div class="box">
+            <div class="box-title" id="source-title">文字起こし</div>
+            <div class="output-area"><span id="final-span"></span><span id="interim-span" class="interim"></span></div>
+        </div>
+        <div class="box">
+            <div class="box-title" id="target-title">翻訳結果</div>
+            <div id="translate-div" class="output-area"></div>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ あなたの現在の「GASウェブアプリURL」をここに正しく貼り付けてください！
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwpM3UpTwdhD4CibPO1bsQYMQMJVUg1fk-5lZ_4bhrqiMViCMJ4Vh7ngAVZtN5WJ8U1PA/exec";
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            alert("お使いのブラウザは音声認識に対応していません。");
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.interimResults = true;
+            recognition.continuous = true;
+
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const statusDiv = document.getElementById('status');
+            const finalSpan = document.getElementById('final-span');
+            const interimSpan = document.getElementById('interim-span');
+            const translateDiv = document.getElementById('translate-div');
             
-            <div class="controls">
-                <label for="source-select" style="font-weight: bold; color: #2c3e50;">話す言語：</label>
-                <select id="source-select">
-                    <option value="ja-JP" data-api="ja">日本語 (Japanese)</option>
-                    <option value="en-US" data-api="en">英語 (English)</option>
-                    <option value="zh-CN" data-api="zh">中国語 (Chinese)</option>
-                    <option value="ko-KR" data-api="ko">韓国語 (Korean)</option>
-                    <option value="es-ES" data-api="es">スペイン語 (Spanish)</option>
-                    <option value="fr-FR" data-api="fr">フランス語 (French)</option>
-                </select>
+            const sourceSelect = document.getElementById('source-select');
+            const targetSelect = document.getElementById('target-select');
+            const sourceTitle = document.getElementById('source-title');
+            const targetTitle = document.getElementById('target-title');
 
-                <label for="target-select" style="font-weight: bold; color: #2c3e50;">翻訳先：</label>
-                <select id="target-select">
-                    <option value="en" selected>英語 (English)</option>
-                    <option value="ja">日本語 (Japanese)</option>
-                    <option value="zh">中国語 (Chinese)</option>
-                    <option value="ko">韓国語 (Korean)</option>
-                    <option value="es">スペイン語 (Spanish)</option>
-                    <option value="fr">フランス語 (French)</option>
-                </select>
+            let finalTranscript = ''; 
 
-                <button id="start-btn">録音開始</button>
-                <button id="stop-btn" disabled>一時停止</button>
-                <button id="clear-btn">クリア</button>
-            </div>
+            function updateTitles() {
+                const srcText = sourceSelect.options[sourceSelect.selectedIndex].text;
+                const tgtText = targetSelect.options[targetSelect.selectedIndex].text;
+                sourceTitle.textContent = `${srcText}（文字起こし）`;
+                targetTitle.textContent = `${tgtText}（翻訳）`;
+            }
+            
+            sourceSelect.addEventListener('change', updateTitles);
+            targetSelect.addEventListener('change', updateTitles);
+            updateTitles();
 
-            <div id="status">停止中</div>
-
-            <div class="container">
-                <div class="box">
-                    <div class="box-title" id="source-title">文字起こし</div>
-                    <div class="output-area"><span id="final-span"></span><span id="interim-span" class="interim"></span></div>
-                </div>
-                <div class="box">
-                    <div class="box-title" id="target-title">翻訳結果</div>
-                    <div id="translate-div" class="output-area"></div>
-                </div>
-            </div>
-
-            <script>
-                // ⚠️ あなたの「GASウェブアプリURL」をここにしっかりと貼り付けてください！
-                const GAS_URL = "https://script.google.com/macros/s/AKfycbwv5wg28-TrKOsKDprb6biB-Y7ihyEGtCQMa9DUbwmKyx_U0vnfHjNV3VnEX0wTrVMiIw/exec";
-
-                // マイク呼び出しを標準的な記述に1本化
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                
-                if (!SpeechRecognition) {
-                    alert("お使いのブラウザは音声認識に対応していません。");
-                } else {
-                    const recognition = new SpeechRecognition();
-                    recognition.interimResults = true;
-                    recognition.continuous = true;
-
-                    const startBtn = document.getElementById('start-btn');
-                    const stopBtn = document.getElementById('stop-btn');
-                    const clearBtn = document.getElementById('clear-btn');
-                    const statusDiv = document.getElementById('status');
-                    const finalSpan = document.getElementById('final-span');
-                    const interimSpan = document.getElementById('interim-span');
-                    const translateDiv = document.getElementById('translate-div');
-                    
-                    const sourceSelect = document.getElementById('source-select');
-                    const targetSelect = document.getElementById('target-select');
-                    const sourceTitle = document.getElementById('source-title');
-                    const targetTitle = document.getElementById('target-title');
-
-                    let finalTranscript = ''; 
-
-                    function updateTitles() {
-                        const srcText = sourceSelect.options[sourceSelect.selectedIndex].text;
-                        const tgtText = targetSelect.options[targetSelect.selectedIndex].text;
-                        sourceTitle.textContent = `${srcText}（文字起こし）`;
-                        targetTitle.textContent = `${tgtText}（翻訳）`;
-                    }
-                    
-                    sourceSelect.addEventListener('change', updateTitles);
-                    targetSelect.addEventListener('change', updateTitles);
-                    updateTitles();
-
-                    startBtn.addEventListener('click', () => { 
-                        recognition.lang = sourceSelect.value;
-                        recognition.start(); 
-                    });
-                    
-                    stopBtn.addEventListener('click', () => { recognition.stop(); });
-                    clearBtn.addEventListener('click', () => {
-                        if(confirm("内容をクリアしますか？")) {
-                            finalTranscript = '';
-                            finalSpan.textContent = '';
-                            interimSpan.textContent = '';
-                            translateDiv.textContent = '';
-                        }
-                    });
-
-                    recognition.onstart = () => {
-                        statusDiv.textContent = "🎤 音声認識＆翻訳中...";
-                        statusDiv.style.color = "#2ecc71";
-                        startBtn.disabled = true;
-                        stopBtn.disabled = false;
-                        sourceSelect.disabled = true;
-                        targetSelect.disabled = true;
-                    };
-
-                    recognition.onend = () => {
-                        statusDiv.textContent = "停止中";
-                        statusDiv.style.color = "#7f8c8d";
-                        startBtn.disabled = false;
-                        stopBtn.disabled = true;
-                        sourceSelect.disabled = false;
-                        targetSelect.disabled = false;
-                        interimSpan.textContent = '';
-                    };
-
-                    recognition.onresult = (event) => {
-                        let interimTranscript = '';
-
-                        for (let i = event.resultIndex; i < event.results.length; ++i) {
-                            if (event.results[i].isFinal) {
-                                const textChunk = event.results[i][0].transcript;
-                                finalTranscript += textChunk + '\n';
-                                translateText(textChunk);
-                            } else {
-                                interimTranscript += event.results[i][0].transcript;
-                            }
-                        }
-
-                        finalSpan.textContent = finalTranscript;
-                        interimSpan.textContent = interimTranscript;
-                    };
-
-                    async function translateText(text) {
-                        if (!GAS_URL) {
-                            translateDiv.textContent = "※GASのURLが設定されていません。";
-                            return;
-                        }
-                        
-                        const selectedSourceOption = sourceSelect.options[sourceSelect.selectedIndex];
-                        const sourceLang = selectedSourceOption.getAttribute('data-api');
-                        const targetLang = targetSelect.value;
-                        
-                        if (sourceLang === targetLang) {
-                            translateDiv.textContent += text + '\n';
-                            return;
-                        }
-
-                        try {
-                            // 💡 安全な外部のGAS_URLに対して直接アクセスする元の形に戻しました
-                            const response = await fetch(`${GAS_URL}?text=${encodeURIComponent(text)}&source=${sourceLang}&target=${targetLang}`);
-                            const translatedText = await response.text();
-                            translateDiv.textContent += translatedText + '\n';
-                        } catch (error) {
-                            console.error("翻訳エラー:", error);
-                            translateDiv.textContent += "[翻訳エラー]\n";
-                        }
-                    }
-
-                    recognition.onerror = (event) => {
-                        statusDiv.textContent = `エラー: ${event.error}`;
-                        statusDiv.style.color = "#e74c3c";
-                    };
+            startBtn.addEventListener('click', () => { 
+                recognition.lang = sourceSelect.value;
+                recognition.start(); 
+            });
+            
+            stopBtn.addEventListener('click', () => { recognition.stop(); });
+            clearBtn.addEventListener('click', () => {
+                if(confirm("内容をクリアしますか？")) {
+                    finalTranscript = '';
+                    finalSpan.textContent = '';
+                    interimSpan.textContent = '';
+                    translateDiv.textContent = '';
                 }
-            </script>
-        </body>
-        </html>
+            });
+
+            recognition.onstart = () => {
+                statusDiv.textContent = "🎤 音声認識＆翻訳中...";
+                statusDiv.style.color = "#2ecc71";
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                sourceSelect.disabled = true;
+                targetSelect.disabled = true;
+            };
+
+            recognition.onend = () => {
+                statusDiv.textContent = "停止中";
+                statusDiv.style.color = "#7f8c8d";
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                sourceSelect.disabled = false;
+                targetSelect.disabled = false;
+                interimSpan.textContent = '';
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        const textChunk = event.results[i][0].transcript;
+                        finalTranscript += textChunk + '\n';
+                        translateText(textChunk);
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                finalSpan.textContent = finalTranscript;
+                interimSpan.textContent = interimTranscript;
+            };
+
+            // 💡 確実にCORS制限をすり抜け、かつデータをしっかり受け取るためのJSONP風方式に変更
+            async function translateText(text) {
+                if (!GAS_URL) {
+                    translateDiv.textContent = "※GASのURLが設定されていません。";
+                    return;
+                }
+                
+                const selectedSourceOption = sourceSelect.options[sourceSelect.selectedIndex];
+                const sourceLang = selectedSourceOption.getAttribute('data-api');
+                const targetLang = targetSelect.value;
+                
+                if (sourceLang === targetLang) {
+                    translateDiv.textContent += text + '\n';
+                    return;
+                }
+
+                try {
+                    // 古い一時的なコールバック関数を掃除
+                    const oldScript = document.getElementById('gas-jsonp');
+                    if (oldScript) oldScript.remove();
+
+                    // GASから翻訳結果が戻ってきたときに実行されるグローバル関数をその場で用意
+                    const callbackName = 'callback_' + Math.random().toString(36).substring(3, 9);
+                    window[callbackName] = function(data) {
+                        translateDiv.textContent += data.translated + '\n';
+                        delete window[callbackName]; // 使い終わったら削除
+                    };
+
+                    // <script>タグを作って強制的にGASへアクセス（これでCORSエラーを100%回避）
+                    const script = document.createElement('script');
+                    script.id = 'gas-jsonp';
+                    script.src = `${GAS_URL}?text=${encodeURIComponent(text)}&source=${sourceLang}&target=${targetLang}&callback=${callbackName}`;
+                    
+                    document.body.appendChild(script);
+
+                } catch (error) {
+                    console.error("翻訳通信エラー:", error);
+                    translateDiv.textContent += "[翻訳エラー]\n";
+                }
+            }
+
+            recognition.onerror = (event) => {
+                statusDiv.textContent = `エラー: ${event.error}`;
+                statusDiv.style.color = "#e74c3c";
+            };
+        }
+    </script>
+</body>
+</html>
